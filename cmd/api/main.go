@@ -1,9 +1,12 @@
 package main
 
 import (
-	"fff/internal/model"
+	"fff/internal/handler"
 	"fff/internal/repo"
+	"fff/internal/service"
 	"fmt"
+	"log/slog"
+	"net/http"
 )
 
 func main() {
@@ -13,10 +16,24 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println("Connected to database", db)
+
+	slog.Info("Connected to database")
 
 	chatRepo := repo.NewChatRepo(db)
-	chatmodel := &model.Chat{Title: "Hello World"}
-	err = chatRepo.Create(chatmodel)
-	fmt.Println(chatmodel)
+	chatService := service.NewChatService(chatRepo)
+	chatHandler := handler.NewChatHandler(chatService)
+
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("POST /chats", chatHandler.CreateChat)
+	mux.HandleFunc("GET /chats/{id}", chatHandler.GetChat)
+	mux.HandleFunc("POST /chats/{id}/messages", chatHandler.AddMessageToChat)
+	mux.HandleFunc("DELETE /chats/{id}", chatHandler.DeleteChatById)
+
+	host := "127.0.0.1:4000"
+
+	slog.Info("Server started on", "host", host)
+	if err := http.ListenAndServe(host, mux); err != nil {
+		slog.Error("Server stopped", "Error", err)
+	}
 }

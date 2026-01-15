@@ -4,10 +4,10 @@ import "time"
 
 type Chat struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
-	Title     string    `json:"title" gorm:"type:varchar(255);not null"`
+	Title     string    `json:"title"`
 	CreatedAt time.Time `json:"created_at"`
 
-	Messages []Message `json:"messages" gorm:"foreignKey:ChatID"`
+	Messages []Message `json:"messages" gorm:"foreignKey:ChatID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 type Message struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
