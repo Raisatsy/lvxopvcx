@@ -4,6 +4,7 @@ services:
   db:
     image: postgres:16
     container_name: postgres_db
+    restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -12,6 +13,25 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d chat_api" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chat_app
+    restart: on-failure
+    environment:
+      DB_DSN: "host=db user=postgres password=postgres dbname=chat_api port=5432 sslmode=disable"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "4000:4000"
 
 volumes:
   postgres_data:

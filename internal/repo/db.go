@@ -1,8 +1,10 @@
 package repo
 
 import (
-	"fff/internal/model"
+	"fff"
 
+	_ "github.com/lib/pq"
+	"github.com/pressly/goose/v3"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -12,9 +14,20 @@ func InitDB(dsn string) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = db.AutoMigrate(&model.Chat{}, &model.Message{})
+
+	sqlDB, err := db.DB()
 	if err != nil {
 		return nil, err
 	}
+
+	goose.SetBaseFS(fff.EmbeddedMigrations)
+	if err := goose.SetDialect("postgres"); err != nil {
+		return nil, err
+	}
+
+	if err := goose.Up(sqlDB, "migrations"); err != nil {
+		return nil, err
+	}
+
 	return db, nil
 }

@@ -4,17 +4,20 @@ import (
 	"fff/internal/handler"
 	"fff/internal/repo"
 	"fff/internal/service"
-	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 )
 
 func main() {
-	dsn := "host=localhost user=postgres password=postgres dbname=chat_api port=5432 sslmode=disable"
-
+	dsn := os.Getenv("DB_DSN")
+	if dsn == "" {
+		dsn = "host=localhost user=postgres password=postgres dbname=chat_api port=5432 sslmode=disable"
+	}
+	slog.Info("DSN", dsn)
 	db, err := repo.InitDB(dsn)
 	if err != nil {
-		fmt.Println(err)
+		slog.Error("Error on connect to db", "err", err)
 	}
 
 	slog.Info("Connected to database")

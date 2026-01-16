@@ -1,1 +1,0 @@
-@%USERPROFILE%\go\bin\goose.exe %*
